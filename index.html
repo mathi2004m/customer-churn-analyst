@@ -1,0 +1,424 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Customer Churn Analyst</title>
+
+<style>
+:root {
+  --bg: #0b1020;
+  --card: #141c30;
+  --border: #29344d;
+  --text: #f1f5f9;
+  --muted: #9ba9c2;
+  --accent: #818cf8;
+  --green: #34d399;
+}
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: Inter, Segoe UI, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+}
+
+.container {
+  width: min(1050px, 92%);
+  margin: auto;
+  padding: 35px 0;
+}
+
+header { margin-bottom: 28px; }
+
+.tag {
+  color: #a5b4fc;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+h1 {
+  font-size: clamp(28px, 5vw, 42px);
+  line-height: 1.2;
+  margin: 10px 0;
+}
+
+.subtitle { color: var(--muted); }
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 25px;
+  margin-bottom: 22px;
+}
+
+h2 { font-size: 21px; margin: 0 0 7px; }
+.description { color: var(--muted); font-size: 14px; margin-top: 0; }
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 25px;
+}
+
+label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 9px;
+  font-size: 14px;
+}
+
+select {
+  width: 100%;
+  padding: 14px 12px;
+  border-radius: 9px;
+  background: #0b1224;
+  border: 1px solid #37445f;
+  color: var(--text);
+  font-size: 14px;
+}
+
+button {
+  margin-top: 24px;
+  width: 100%;
+  border: 0;
+  padding: 15px;
+  border-radius: 9px;
+  background: var(--accent);
+  color: #0b1020;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+button:hover { background: #a5b4fc; }
+
+.results { display: none; }
+.results.show { display: block; }
+
+.result-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.result-icon {
+  width: 45px;
+  height: 45px;
+  display: grid;
+  place-items: center;
+  background: #252c4b;
+  border-radius: 12px;
+  font-size: 22px;
+}
+
+.pill {
+  display: inline-block;
+  padding: 5px 10px;
+  background: #312e81;
+  color: #c7d2fe;
+  border-radius: 30px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.result-section {
+  border-top: 1px solid var(--border);
+  padding: 19px 0;
+}
+
+.result-section h3 {
+  font-size: 16px;
+  margin: 0 0 8px;
+}
+
+.result-section p {
+  color: #d2d9e8;
+  margin: 0;
+}
+
+.recommendation {
+  background: #102d2b;
+  border: 1px solid #23645a;
+  border-radius: 12px;
+  padding: 18px;
+}
+
+.recommendation h3 { color: var(--green); }
+
+.reason-list {
+  color: #d2d9e8;
+  padding-left: 20px;
+  margin-bottom: 0;
+}
+
+.note {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 18px;
+}
+
+footer {
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+  padding: 15px 0;
+}
+
+@media (max-width: 700px) {
+  .form-grid { grid-template-columns: 1fr; }
+  .card { padding: 19px; }
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<header>
+  <div class="tag">Customer Intelligence · Analytics</div>
+  <h1>AI Customer Churn Analyst</h1>
+  <p class="subtitle">
+    Understand customer retention concerns and discover a practical
+    business action using just three simple inputs.
+  </p>
+</header>
+
+<section class="card">
+  <h2>Customer Profile</h2>
+  <p class="description">
+    Enter the customer's details and generate a business insight.
+  </p>
+
+  <div class="form-grid">
+    <div>
+      <label for="contract">1. Contract type</label>
+      <select id="contract">
+        <option value="Month-to-month">Monthly contract</option>
+        <option value="One year">1-year contract</option>
+        <option value="Two year">2-year contract</option>
+      </select>
+    </div>
+
+    <div>
+      <label for="tenure">2. Customer duration</label>
+      <select id="tenure">
+        <option value="new">New customer (0–12 months)</option>
+        <option value="existing">Existing customer (13–36 months)</option>
+        <option value="long">Long-term customer (37+ months)</option>
+      </select>
+    </div>
+
+    <div>
+      <label for="charges">3. Monthly bill</label>
+      <select id="charges">
+        <option value="low">Low — under $35</option>
+        <option value="medium">Medium — $35–$70</option>
+        <option value="high" selected>High — $70 or more</option>
+      </select>
+    </div>
+  </div>
+
+  <button type="button" onclick="generateInsight()">
+    Analyze Customer
+  </button>
+</section>
+
+<section class="card results" id="results" aria-live="polite">
+  <div class="result-heading">
+    <div class="result-icon">✦</div>
+    <div>
+      <h2 style="margin:0">Customer Insight Report</h2>
+      <span class="pill">Illustrative analysis</span>
+    </div>
+  </div>
+
+  <div class="result-section">
+    <h3>1. Customer Insight</h3>
+    <p id="insight"></p>
+  </div>
+
+  <div class="result-section recommendation">
+    <h3>2. Suggested Business Decision</h3>
+    <p id="decision"></p>
+  </div>
+
+  <div class="result-section">
+    <h3>3. Why this recommendation?</h3>
+    <ul class="reason-list" id="reasons"></ul>
+  </div>
+
+  <div class="result-section">
+    <h3>4. Business Objective</h3>
+    <p id="objective"></p>
+  </div>
+
+  <p class="note" id="limitation">
+    This is an illustrative, rule-based insight. It is not a live AI-generated
+    response, a trained-model prediction, or an individual churn probability.
+    Observed dataset patterns do not prove causation.
+  </p>
+</section>
+
+<footer>
+  Customer Churn Analytics Project · Python · Pandas · Scikit-learn · HTML · CSS · JavaScript
+</footer>
+
+</div>
+
+<script>
+function generateInsight() {
+  const contract = document.getElementById("contract").value;
+  const tenure = document.getElementById("tenure").value;
+  const charges = document.getElementById("charges").value;
+
+  let observations = [];
+  let reasons = [];
+  let decision = "";
+  let objective = "";
+
+  // Contract patterns observed in the project dataset.
+  const contractChurnRates = {
+    "Month-to-month": "42.71%",
+    "One year": "11.27%",
+    "Two year": "2.83%"
+  };
+
+  const contractNames = {
+    "Month-to-month": "month-to-month contract",
+    "One year": "one-year contract",
+    "Two year": "two-year contract"
+  };
+
+  if (contract === "Month-to-month") {
+    observations.push(
+      "The customer has a month-to-month contract, which allows more flexibility to leave than a longer-term contract."
+    );
+    reasons.push(
+      "In this dataset, the observed churn rate for month-to-month customers was " +
+      contractChurnRates[contract] + ". This is a group-level statistic, not this customer's personal probability."
+    );
+  } else if (contract === "One year") {
+    observations.push(
+      "The customer has a one-year contract, which may provide more commitment than a monthly arrangement."
+    );
+    reasons.push(
+      "The observed churn rate for customers with one-year contracts was " +
+      contractChurnRates[contract] + " in this dataset."
+    );
+  } else {
+    observations.push(
+      "The customer has a two-year contract, which is associated with a lower observed churn rate in this dataset."
+    );
+    reasons.push(
+      "The observed churn rate for customers with two-year contracts was " +
+      contractChurnRates[contract] + " in this dataset."
+    );
+  }
+
+  if (tenure === "new") {
+    observations.push(
+      "The customer is relatively new and may still be evaluating whether the service meets their needs."
+    );
+    reasons.push(
+      "The customer is in the first 12 months, making onboarding and early satisfaction useful areas to review."
+    );
+  } else if (tenure === "existing") {
+    observations.push(
+      "The customer has been with the company for over a year, so reviewing their ongoing satisfaction may help identify unmet needs."
+    );
+    reasons.push(
+      "The customer has an established service history that can be used during a satisfaction check-in."
+    );
+  } else {
+    observations.push(
+      "The customer has a longer service history. It may be useful to understand whether their current needs and expectations are still being met."
+    );
+    reasons.push(
+      "Long-term customers may have different service needs from new customers; their individual satisfaction should be checked."
+    );
+  }
+
+  if (charges === "high") {
+    observations.push(
+      "The monthly bill is $70 or more, so perceived value for money is worth checking. A high bill alone does not prove dissatisfaction."
+    );
+    reasons.push(
+      "The selected bill band makes a plan-value review a reasonable option, rather than assuming price is the cause."
+    );
+  } else if (charges === "medium") {
+    observations.push(
+      "The monthly bill is in the $35–$70 range. It is still useful to check whether the customer feels the service offers good value."
+    );
+    reasons.push(
+      "The customer's stated bill band provides context for a service-value discussion, but does not establish dissatisfaction."
+    );
+  } else {
+    observations.push(
+      "The monthly bill is under $35. Cost may be less prominent, but customer satisfaction and service quality still matter."
+    );
+    reasons.push(
+      "The selected bill band does not by itself indicate whether the customer is satisfied or likely to leave."
+    );
+  }
+
+  // One primary recommendation based on the selected profile.
+  if (charges === "high") {
+    decision =
+      "Contact the customer to check satisfaction and review whether their current plan provides good value. If they identify cost as a concern, discuss a suitable plan that matches their needs.";
+    objective =
+      "Understand potential dissatisfaction early and identify an appropriate way to improve perceived value.";
+  } else if (tenure === "new") {
+    decision =
+      "Arrange a short onboarding check-in to ask whether the customer understands the service, is experiencing any problems, and needs assistance.";
+    objective =
+      "Help the customer settle into the service and identify problems before they become persistent.";
+  } else if (contract === "Month-to-month") {
+    decision =
+      "Conduct a customer satisfaction check-in and ask about service concerns before considering whether a longer-term plan is appropriate.";
+    objective =
+      "Understand the customer's reasons for choosing a flexible contract and identify opportunities to improve satisfaction.";
+  } else {
+    decision =
+      "Schedule a routine satisfaction check-in and ask whether the current plan continues to meet the customer's needs.";
+    objective =
+      "Maintain service quality and identify unmet customer needs.";
+  }
+
+  const insightText = observations.join(" ");
+
+  document.getElementById("insight").textContent = insightText;
+  document.getElementById("decision").textContent = decision;
+  document.getElementById("objective").textContent = objective;
+
+  const reasonsElement = document.getElementById("reasons");
+  reasonsElement.replaceChildren();
+
+  reasons.forEach(function(reason) {
+    const li = document.createElement("li");
+    li.textContent = reason;
+    reasonsElement.appendChild(li);
+  });
+
+  document.getElementById("results").classList.add("show");
+  document.getElementById("results").scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
+}
+
+// Generate the initial example automatically.
+generateInsight();
+</script>
+
+</body>
+</html>
+```
