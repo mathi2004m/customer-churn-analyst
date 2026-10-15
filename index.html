@@ -1,652 +1,176 @@
-```html
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Customer churn analytics dashboard with customer insights, evidence graphs, and business retention recommendations.">
-<title>Customer Churn Intelligence | Retention Analytics</title>
-
+<title>Customer Churn Intelligence</title>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 <style>
-:root {
-  --bg: #0b1020;
-  --card: #141c30;
-  --panel: #0b1224;
-  --border: #29344d;
-  --text: #f1f5f9;
-  --muted: #9ba9c2;
-  --accent: #818cf8;
-  --green: #34d399;
-  --orange: #fbbf24;
-}
-* { box-sizing: border-box; }
-
-body {
-  margin: 0;
-  font-family: Inter, "Segoe UI", Arial, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  line-height: 1.6;
-}
-
-.container {
-  width: min(1120px, 92%);
-  margin: auto;
-  padding: 35px 0;
-}
-
-header { margin-bottom: 28px; }
-
-.tag {
-  color: #a5b4fc;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-}
-
-h1 {
-  font-size: clamp(28px, 5vw, 42px);
-  line-height: 1.2;
-  margin: 10px 0;
-}
-
-h2 { font-size: 21px; margin: 0 0 7px; }
-.subtitle, .description, .muted { color: var(--muted); }
-.description { font-size: 14px; margin-top: 0; }
-
-.card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 25px;
-  margin-bottom: 22px;
-}
-
-.kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
-  margin-bottom: 22px;
-}
-
-.kpi {
-  background: var(--card);
-  border: 1px solid var(--border);
-  padding: 20px;
-  border-radius: 13px;
-}
-
-.kpi-label { color: var(--muted); font-size: 13px; }
-.kpi-value { font-size: 27px; font-weight: 750; margin-top: 8px; }
-
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 18px;
-  margin-top: 25px;
-}
-
-label {
-  display: block;
-  font-weight: 600;
-  margin-bottom: 9px;
-  font-size: 14px;
-}
-
-select {
-  width: 100%;
-  padding: 14px 12px;
-  border-radius: 9px;
-  background: var(--panel);
-  border: 1px solid #37445f;
-  color: var(--text);
-  font-size: 14px;
-}
-
-button {
-  border: 0;
-  padding: 14px 18px;
-  border-radius: 9px;
-  background: var(--accent);
-  color: #0b1020;
-  font-size: 14px;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-button:hover { background: #a5b4fc; }
-
-.primary-button { width: 100%; margin-top: 24px; }
-
-.results { display: none; }
-.results.show { display: block; }
-
-.result-heading {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 18px;
-}
-
-.result-icon {
-  width: 45px;
-  height: 45px;
-  display: grid;
-  place-items: center;
-  background: #252c4b;
-  border-radius: 12px;
-  font-size: 22px;
-}
-
-.pill {
-  display: inline-block;
-  padding: 5px 10px;
-  background: #312e81;
-  color: #c7d2fe;
-  border-radius: 30px;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.result-section {
-  border-top: 1px solid var(--border);
-  padding: 19px 0;
-}
-
-.result-section h3, .chart-card h3 {
-  font-size: 16px;
-  margin: 0 0 8px;
-}
-
-.result-section p, .chart-card p { margin-top: 0; }
-
-.recommendation {
-  background: #102d2b;
-  border: 1px solid #23645a;
-  border-radius: 12px;
-  padding: 18px;
-  margin: 5px 0;
-}
-
-.recommendation h3 { color: var(--green); }
-
-.reason-list {
-  color: #d2d9e8;
-  padding-left: 20px;
-  margin-bottom: 0;
-}
-
-.chart-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px;
-  margin-top: 20px;
-}
-
-.chart-card {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 20px;
-  min-width: 0;
-}
-
-.chart-note {
-  color: var(--muted);
-  font-size: 12px;
-  margin: 0 0 18px;
-}
-
-.bar-row { margin: 17px 0; }
-
-.bar-label {
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-  font-size: 12px;
-  margin-bottom: 7px;
-}
-
-.bar-track {
-  height: 12px;
-  background: #29344d;
-  border-radius: 20px;
-  overflow: hidden;
-}
-
-.bar-fill {
-  height: 100%;
-  border-radius: 20px;
-  background: var(--accent);
-}
-
-.bar-fill.green { background: var(--green); }
-.bar-fill.orange { background: var(--orange); }
-
-.legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.legend span::before {
-  content: "";
-  display: inline-block;
-  width: 9px;
-  height: 9px;
-  border-radius: 2px;
-  background: var(--accent);
-  margin-right: 5px;
-}
-
-.legend .green-key::before { background: var(--green); }
-.legend .orange-key::before { background: var(--orange); }
-
-.notice {
-  border: 1px solid var(--border);
-  background: #111a2c;
-  padding: 15px;
-  border-radius: 10px;
-  font-size: 13px;
-  color: var(--muted);
-}
-
-footer {
-  text-align: center;
-  color: var(--muted);
-  font-size: 12px;
-  padding: 15px 0;
-}
-
-@media (max-width: 800px) {
-  .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .form-grid, .chart-grid { grid-template-columns: 1fr; }
-}
-
-@media (max-width: 420px) {
-  .container { width: 94%; padding-top: 22px; }
-  .card { padding: 17px; }
-  .kpi { padding: 14px; }
-  .kpi-value { font-size: 22px; }
-}
+*{box-sizing:border-box}
+body{margin:0;background:#0b1020;color:#edf2ff;font-family:Arial,sans-serif}
+main{max-width:1150px;margin:auto;padding:25px}
+h1{font-size:32px;margin-bottom:8px}
+p{color:#a8b4cc;line-height:1.6}
+.panel{background:#121a2d;border:1px solid #283650;border-radius:14px;padding:18px;margin-bottom:16px}
+.kpis,.filters,.charts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.kpi{font-size:28px;font-weight:bold;margin-top:10px}
+label{display:block;margin-bottom:8px;font-size:13px}
+select{width:100%;padding:12px;background:#0b1325;color:white;border:1px solid #405174;border-radius:8px}
+.charts{grid-template-columns:repeat(2,minmax(0,1fr))}
+.chart{height:320px}
+.wide{grid-column:1/-1}
+.error{color:#ff9aa9}
+@media(max-width:700px){main{padding:14px}.kpis,.filters,.charts{grid-template-columns:1fr}.wide{grid-column:auto}.chart{height:300px}}
 </style>
 </head>
-
 <body>
-<div class="container">
+<main>
+<h1>Customer Churn Intelligence</h1>
+<p>Explore churn patterns and discover practical customer-retention actions using real customer data.</p>
 
-<header>
-  <div class="tag">Data Analytics · Decision Intelligence</div>
-  <h1>Customer Churn Intelligence</h1>
-  <p class="subtitle">
-    Understand customer retention patterns, generate customer insights,
-    and identify practical business actions using data.
-  </p>
-</header>
+<div id="error" class="error"></div>
 
-<section class="kpi-grid">
-  <div class="kpi">
-    <div class="kpi-label">Total Customers</div>
-    <div class="kpi-value">7,043</div>
-  </div>
-  <div class="kpi">
-    <div class="kpi-label">Churned Customers</div>
-    <div class="kpi-value">1,869</div>
-  </div>
-  <div class="kpi">
-    <div class="kpi-label">Overall Churn Rate</div>
-    <div class="kpi-value">26.54%</div>
-  </div>
-  <div class="kpi">
-    <div class="kpi-label">Avg. Monthly Charge</div>
-    <div class="kpi-value">$64.76</div>
-  </div>
+<section class="kpis">
+<div class="panel"><p>Total customers</p><div class="kpi" id="total">—</div></div>
+<div class="panel"><p>Churned customers</p><div class="kpi" id="churned">—</div></div>
+<div class="panel"><p>Overall churn rate</p><div class="kpi" id="rate">—</div></div>
 </section>
 
-<section class="card">
-  <h2>Customer Profile</h2>
-  <p class="description">
-    Select three simple customer details to generate a tailored insight.
-  </p>
-
-  <div class="form-grid">
-    <div>
-      <label for="contract">1. Contract type</label>
-      <select id="contract">
-        <option value="Month-to-month">Monthly contract</option>
-        <option value="One year">1-year contract</option>
-        <option value="Two year">2-year contract</option>
-      </select>
-    </div>
-
-    <div>
-      <label for="tenure">2. Customer duration</label>
-      <select id="tenure">
-        <option value="new">New customer (0–12 months)</option>
-        <option value="existing">Existing customer (13–36 months)</option>
-        <option value="long">Long-term customer (37+ months)</option>
-      </select>
-    </div>
-
-    <div>
-      <label for="charges">3. Monthly bill</label>
-      <select id="charges">
-        <option value="low">Low — under $35</option>
-        <option value="medium">Medium — $35–$70</option>
-        <option value="high" selected>High — $70 or more</option>
-      </select>
-    </div>
-  </div>
-
-  <button class="primary-button" id="analyzeButton" type="button">
-    Analyze Customer
-  </button>
-</section>
-
-<section class="card results show" id="results" aria-live="polite">
-  <div class="result-heading">
-    <div class="result-icon">✦</div>
-    <div>
-      <h2 style="margin:0">Customer Insight Report</h2>
-      <span class="pill">Illustrative, rule-based analysis</span>
-    </div>
-  </div>
-
-  <div class="result-section">
-    <h3>1. Customer Insight</h3>
-    <p id="insight"></p>
-  </div>
-
-  <div class="result-section recommendation">
-    <h3>2. Suggested Business Decision</h3>
-    <p id="decision"></p>
-  </div>
-
-  <div class="result-section">
-    <h3>3. Why this recommendation?</h3>
-    <ul class="reason-list" id="reasons"></ul>
-  </div>
-
-  <div class="result-section">
-    <h3>4. Business Objective</h3>
-    <p id="objective"></p>
-  </div>
-
-  <p class="notice">
-    This is a rule-based demonstration, not a live AI response or an
-    individual churn prediction. It uses general profile rules and the
-    dataset statistics displayed below.
-  </p>
-</section>
-
-<section class="card" id="evidence">
-  <h2>Churn Evidence Dashboard</h2>
-  <p class="description">
-    Observed patterns in the IBM Telco Customer Churn dataset.
-    These graphs support the analysis but do not prove causation.
-  </p>
-
-  <div class="chart-grid">
-
-    <div class="chart-card">
-      <h3>Churn Rate by Contract</h3>
-      <p class="chart-note">
-        Percentage of customers who left within each contract group.
-      </p>
-
-      <div class="bar-row">
-        <div class="bar-label">
-          <span>Month-to-month</span><b>42.71%</b>
-        </div>
-        <div class="bar-track">
-          <div class="bar-fill orange" style="width:42.71%"></div>
-        </div>
-      </div>
-
-      <div class="bar-row">
-        <div class="bar-label">
-          <span>One year</span><b>11.27%</b>
-        </div>
-        <div class="bar-track">
-          <div class="bar-fill" style="width:11.27%"></div>
-        </div>
-      </div>
-
-      <div class="bar-row">
-        <div class="bar-label">
-          <span>Two year</span><b>2.83%</b>
-        </div>
-        <div class="bar-track">
-          <div class="bar-fill green" style="width:2.83%"></div>
-        </div>
-      </div>
-
-      <div class="legend">
-        <span class="orange-key">Higher observed churn</span>
-      </div>
-    </div>
-
-    <div class="chart-card">
-      <h3>Average Customer Tenure</h3>
-      <p class="chart-note">
-        Average time with the company by actual churn outcome.
-      </p>
-
-      <div class="bar-row">
-        <div class="bar-label">
-          <span>Churned customers</span><b>17.98 months</b>
-        </div>
-        <div class="bar-track">
-          <div class="bar-fill orange" style="width:24.97%"></div>
-        </div>
-      </div>
-
-      <div class="bar-row">
-        <div class="bar-label">
-          <span>Retained customers</span><b>37.57 months</b>
-        </div>
-        <div class="bar-track">
-          <div class="bar-fill green" style="width:52.18%"></div>
-        </div>
-      </div>
-
-      <p class="chart-note">Scale: 0–72 months</p>
-    </div>
-
-    <div class="chart-card">
-      <h3>Average Monthly Charges</h3>
-      <p class="chart-note">
-        Average bill by actual churn outcome.
-      </p>
-
-      <div class="bar-row">
-        <div class="bar-label">
-          <span>Churned customers</span><b>$74.44</b>
-        </div>
-        <div class="bar-track">
-          <div class="bar-fill orange" style="width:62.03%"></div>
-        </div>
-      </div>
-
-      <div class="bar-row">
-        <div class="bar-label">
-          <span>Retained customers</span><b>$61.27</b>
-        </div>
-        <div class="bar-track">
-          <div class="bar-fill green" style="width:51.06%"></div>
-        </div>
-      </div>
-
-      <p class="chart-note">Scale: $0–$120 per month</p>
-    </div>
-
-    <div class="chart-card">
-      <h3>Business Interpretation</h3>
-      <p class="chart-note">What the observed data suggests</p>
-      <ul class="reason-list">
-        <li>Month-to-month customers have a higher observed churn rate.</li>
-        <li>Churned customers had shorter average tenure.</li>
-        <li>Churned customers had higher average monthly charges.</li>
-      </ul>
-      <p class="chart-note" style="margin-top:16px">
-        These are associations, not proof of causation.
-      </p>
-    </div>
-
-  </div>
-</section>
-
-<footer>
-  Customer Churn Intelligence · Python · Pandas · Scikit-learn · HTML · CSS · JavaScript
-  <br>Portfolio demonstration using the IBM Telco Customer Churn dataset.
-</footer>
-
+<section class="panel">
+<h3>Explore a customer profile</h3>
+<p>Choose the options to update the insights and highlight the matching groups in the charts.</p>
+<div class="filters">
+<div><label for="contract">Contract type</label>
+<select id="contract">
+<option>Month-to-month</option><option>One year</option><option>Two year</option>
+</select></div>
+<div><label for="tenure">Customer duration</label>
+<select id="tenure">
+<option>New</option><option>Existing</option><option>Long-term</option>
+</select></div>
+<div><label for="charges">Monthly bill</label>
+<select id="charges">
+<option>Low</option><option>Medium</option><option>High</option>
+</select></div>
 </div>
+<p id="profileInsight">Loading insights…</p>
+<p><strong>Suggested action:</strong> <span id="action">Loading…</span></p>
+</section>
+
+<section class="charts">
+<div class="panel"><h3>Overall churn split</h3><div id="donut" class="chart"></div></div>
+<div class="panel"><h3>Churn by contract</h3><div id="contractChart" class="chart"></div></div>
+<div class="panel"><h3>Churn by customer duration</h3><div id="tenureChart" class="chart"></div></div>
+<div class="panel"><h3>Churn by monthly bill</h3><div id="chargesChart" class="chart"></div></div>
+<div class="panel wide"><h3>Monthly charges distribution</h3><div id="boxChart" class="chart"></div></div>
+</section>
+
+<p>Source: IBM Telco Customer Churn dataset. Group churn rates are historical statistics, not individual predictions. Recommendations are rule-based, not generated by a live AI model.</p>
+</main>
 
 <script>
-function generateInsight() {
-  const contract = document.getElementById("contract").value;
-  const tenure = document.getElementById("tenure").value;
-  const charges = document.getElementById("charges").value;
+let D;
+const $ = id => document.getElementById(id);
+const fmt = n => Number(n).toLocaleString("en-US");
+const pct = n => Number(n).toFixed(2) + "%";
 
-  const churnRates = {
-    "Month-to-month": "42.71%",
-    "One year": "11.27%",
-    "Two year": "2.83%"
-  };
+const baseLayout = {
+  paper_bgcolor:"rgba(0,0,0,0)",
+  plot_bgcolor:"rgba(0,0,0,0)",
+  font:{color:"#edf2ff"},
+  margin:{l:48,r:15,t:20,b:55}
+};
+const config = {responsive:true,displaylogo:false};
 
-  let observations = [];
-  let reasons = [];
-  let decision = "";
-  let objective = "";
+function findRow(rows,key){return rows.find(r=>r.key===key)}
 
-  if (contract === "Month-to-month") {
-    observations.push(
-      "The customer has a month-to-month contract and can change providers without a long-term commitment."
-    );
-    reasons.push(
-      "The observed churn rate for this contract group is " +
-      churnRates[contract] + " in the dataset."
-    );
-  } else if (contract === "One year") {
-    observations.push(
-      "The customer has a one-year contract, providing a longer commitment than a monthly plan."
-    );
-    reasons.push(
-      "The observed churn rate for one-year contracts is " +
-      churnRates[contract] + " in the dataset."
-    );
-  } else {
-    observations.push(
-      "The customer has a two-year contract, a group associated with a lower observed churn rate in this dataset."
-    );
-    reasons.push(
-      "The observed churn rate for two-year contracts is " +
-      churnRates[contract] + " in the dataset."
-    );
-  }
-
-  if (tenure === "new") {
-    observations.push(
-      "The customer is relatively new and may still be evaluating whether the service meets their needs."
-    );
-    reasons.push(
-      "Churned customers in the dataset had an average tenure of 17.98 months, compared with 37.57 months for retained customers. These are group averages."
-    );
-  } else if (tenure === "existing") {
-    observations.push(
-      "The customer has an established service history. Reviewing their current satisfaction may help uncover unmet needs."
-    );
-    reasons.push(
-      "Customer duration is useful context, but it cannot determine an individual's future behavior."
-    );
-  } else {
-    observations.push(
-      "The customer has a longer service history. Checking whether their current plan still meets their needs may support retention."
-    );
-    reasons.push(
-      "Long-term tenure is a useful customer profile characteristic, not a guarantee of continued loyalty."
-    );
-  }
-
-  if (charges === "high") {
-    observations.push(
-      "The monthly bill is $70 or more. It is worth checking whether the customer believes the service provides good value; a high bill alone does not prove dissatisfaction."
-    );
-    reasons.push(
-      "Average monthly charges were $74.44 for churned customers and $61.27 for retained customers in the dataset. These averages do not establish that price caused churn."
-    );
-  } else if (charges === "medium") {
-    observations.push(
-      "The monthly bill falls in the selected medium range. Customer satisfaction and perceived value are still worth checking."
-    );
-    reasons.push(
-      "The selected bill band provides context but does not reveal whether the customer is satisfied."
-    );
-  } else {
-    observations.push(
-      "The monthly bill is under $35. Service quality and overall satisfaction remain important to understand."
-    );
-    reasons.push(
-      "A lower bill does not guarantee customer satisfaction or low churn risk."
-    );
-  }
-
-  // Select one primary business action.
-  if (charges === "high") {
-    decision =
-      "Conduct a proactive customer check-in. Ask about satisfaction and review whether the current plan provides good value. If cost is a concern, discuss a suitable alternative plan.";
-    objective =
-      "Understand potential dissatisfaction early and identify an appropriate way to improve perceived value.";
-  } else if (tenure === "new") {
-    decision =
-      "Arrange an onboarding check-in. Ask whether the customer understands the service, is experiencing any issues, and needs assistance.";
-    objective =
-      "Help the customer settle into the service and identify problems early.";
-  } else if (contract === "Month-to-month") {
-    decision =
-      "Contact the customer to understand their satisfaction and any service concerns before discussing whether a longer-term plan suits their needs.";
-    objective =
-      "Identify retention opportunities based on the customer's actual needs.";
-  } else {
-    decision =
-      "Schedule a routine satisfaction check-in and ask whether the current service continues to meet the customer's expectations.";
-    objective =
-      "Maintain customer satisfaction and identify unmet needs.";
-  }
-
-  document.getElementById("insight").textContent =
-    observations.join(" ");
-
-  document.getElementById("decision").textContent = decision;
-  document.getElementById("objective").textContent = objective;
-
-  const reasonsElement = document.getElementById("reasons");
-  reasonsElement.replaceChildren();
-
-  reasons.forEach(function(reason) {
-    const li = document.createElement("li");
-    li.textContent = reason;
-    reasonsElement.appendChild(li);
-  });
-
-  const results = document.getElementById("results");
-  results.classList.add("show");
-  results.scrollIntoView({ behavior: "smooth", block: "start" });
+function drawBar(id,rows,selected){
+  Plotly.react(id,[{
+    type:"bar",
+    x:rows.map(r=>r.label),
+    y:rows.map(r=>r.churnRate),
+    marker:{color:rows.map(r=>r.key===selected?"#8b9cff":"#354563")},
+    text:rows.map(r=>pct(r.churnRate)),
+    textposition:"outside",
+    cliponaxis:false,
+    customdata:rows.map(r=>[r.customers,r.churned]),
+    hovertemplate:"%{x}<br>Churn rate: %{y:.2f}%<br>Customers: %{customdata[0]}<br>Churned: %{customdata[1]}<extra></extra>"
+  }],{
+    ...baseLayout,
+    margin:{l:48,r:15,t:30,b:65},
+    yaxis:{title:"Churn rate (%)",ticksuffix:"%",rangemode:"tozero",gridcolor:"#283650"},
+    xaxis:{gridcolor:"#283650",automargin:true}
+  },config);
 }
 
-document.getElementById("analyzeButton").addEventListener(
-  "click",
-  generateInsight
-);
+function update(){
+  if(!D)return;
 
-// Display the default example when the page loads.
-generateInsight();
+  const c=$("contract").value;
+  const t=$("tenure").value;
+  const b=$("charges").value;
+  const cr=findRow(D.contract,c);
+  const tr=findRow(D.tenure,t);
+  const br=findRow(D.charges,b);
+
+  drawBar("contractChart",D.contract,c);
+  drawBar("tenureChart",D.tenure,t);
+  drawBar("chargesChart",D.charges,b);
+
+  $("profileInsight").textContent =
+    `Selected profile: ${c}, ${t.toLowerCase()} customers, ${b.toLowerCase()} monthly bill. `+
+    `The ${c} group has a ${pct(cr.churnRate)} churn rate; the ${t.toLowerCase()} group has a ${pct(tr.churnRate)} rate; and the ${b.toLowerCase()} bill group has a ${pct(br.churnRate)} rate. These are separate group statistics, not a combined individual risk score.`;
+
+  if(c==="Month-to-month"){
+    $("action").textContent="Test renewal reminders, clear plan comparisons, and optional loyalty benefits for month-to-month customers.";
+  }else if(t==="New"){
+    $("action").textContent="Improve onboarding with a welcome check-in, setup guidance, and clear billing explanations.";
+  }else if(b==="High"){
+    $("action").textContent="Review bill transparency, service quality, and whether customers understand the value of their plan.";
+  }else{
+    $("action").textContent="Contact customers proactively, resolve support issues early, and measure whether retention improves.";
+  }
+}
+
+async function start(){
+  try{
+    const response=await fetch("./chart_data.json");
+    if(!response.ok)throw Error("chart_data.json was not found. Generate it using the Python program first.");
+    D=await response.json();
+
+    $("total").textContent=fmt(D.totalCustomers);
+    $("churned").textContent=fmt(D.churnedCustomers);
+    $("rate").textContent=pct(D.overallChurnRate);
+
+    Plotly.newPlot("donut",[{
+      type:"pie",hole:.62,
+      labels:["Retained","Churned"],
+      values:[D.retainedCustomers,D.churnedCustomers],
+      marker:{colors:["#34d399","#fb7185"]},
+      textinfo:"label+percent",
+      hovertemplate:"%{label}: %{value:,} (%{percent})<extra></extra>"
+    }],{
+      ...baseLayout,margin:{l:20,r:20,t:20,b:20},
+      annotations:[{text:pct(D.overallChurnRate)+"<br>churn rate",showarrow:false,font:{size:18,color:"#edf2ff"}}]
+    },config);
+
+    Plotly.newPlot("boxChart",[
+      {type:"box",name:"Retained",y:D.monthlyChargesByChurn.No,marker:{color:"#34d399"},boxpoints:false},
+      {type:"box",name:"Churned",y:D.monthlyChargesByChurn.Yes,marker:{color:"#fb7185"},boxpoints:false}
+    ],{
+      ...baseLayout,showlegend:true,
+      yaxis:{title:"Monthly charges ($)",tickprefix:"$",gridcolor:"#283650"},
+      xaxis:{gridcolor:"#283650"}
+    },config);
+
+    ["contract","tenure","charges"].forEach(id=>$(id).addEventListener("change",update));
+    update();
+  }catch(e){
+    $("error").textContent=e.message+" Use VS Code Live Server to test this page.";
+  }
+}
+start();
 </script>
-
 </body>
 </html>
-```
